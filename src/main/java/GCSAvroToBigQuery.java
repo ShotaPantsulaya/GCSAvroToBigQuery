@@ -1,6 +1,11 @@
+import com.google.api.gax.paging.Page;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
+import com.google.cloud.ReadChannel;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.beam.runners.direct.DirectRunner;
@@ -14,6 +19,11 @@ import org.apache.beam.sdk.schemas.utils.AvroUtils;
 import org.apache.beam.sdk.transforms.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.channels.Channels;
 
 public class GCSAvroToBigQuery {
 
@@ -225,5 +235,28 @@ public class GCSAvroToBigQuery {
                 );
         pipeline.run(options).waitUntilFinish();
     }
+
+    /*private static Blob getAvroFile(String bucketString, String prefix) throws FileNotFoundException {
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        Page<Blob> bucket = storage.list(bucketString, Storage.BlobListOption.prefix(prefix));
+        Iterable<Blob> values = bucket.getValues();
+        while (values != null) {
+            for (Blob value : values) {
+                if (value.getName().matches("^.+\\.avro$")) {
+                    System.out.println(value.getName());
+                    return value;
+                }
+            }
+            values = bucket.hasNextPage() ? bucket.getNextPage().getValues() : null;
+        }
+        throw new FileNotFoundException("Cannot find avro file in the selected path"); //Change to API exception
+    }
+
+    private static Schema getAvroSchemaFromBlob(Blob blob) throws IOException {
+        ReadChannel reader = blob.reader();
+        InputStream inputStream = Channels.newInputStream(reader);
+
+        return new Schema.Parser().parse(inputStream);
+    }*/
 
 }
